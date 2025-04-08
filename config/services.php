@@ -18,6 +18,13 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+    'amocrm' => [
+        'client_id' => env('AMOCRM_CLIENT_ID'),
+        'client_secret' => env('AMOCRM_CLIENT_SECRET'),
+        'redirect' => env('AMOCRM_REDIRECT_URI'),
+        'base_domain' => env('AMOCRM_BASE_DOMAIN'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
