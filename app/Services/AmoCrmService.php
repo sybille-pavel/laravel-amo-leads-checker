@@ -64,9 +64,18 @@
             return $this->client->getOAuthClient()->getAccessTokenByCode($code);
         }
 
-        public function getLeads(int $page = 1, int $limit = 25)
+        //TODO: лимит 250, нужно исправить
+        public function getLeads(int $page = 1, int $limit = 250)
         {
-            return $this->client->leads()->get(null, ['page' => $page, 'limit' => $limit]);
+            return $this->client->leads()->get(null, ['page' => $page, 'limit' => $limit, 'with' => 'contacts']);
+        }
+
+        public function getContactsById($id)
+        {
+            $filter = new \AmoCRM\Filters\ContactsFilter();
+            $filter->setIds([$id]);
+
+            return $this->client->contacts()->get($filter)->first();
         }
 
         public function getStatusesByPipeline(): array

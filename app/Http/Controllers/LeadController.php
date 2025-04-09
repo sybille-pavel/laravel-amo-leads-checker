@@ -44,7 +44,8 @@
 
                     if ($lead->getContacts()) {
                         $firstContact = $lead->getContacts()->first();
-                        $contact = $firstContact ? $firstContact->getName() : null;
+                        $contactInfo = $this->amo->getContactsById($firstContact->getId());
+                        $contact = $contactInfo ? $contactInfo->getName() : null;
                     }
 
                     return [
