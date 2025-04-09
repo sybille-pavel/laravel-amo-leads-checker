@@ -2,29 +2,21 @@
 
     namespace App\Http\Controllers;
 
+    use App\Services\AmoCrmService;
     use Illuminate\Http\Request;
-    use AmoCRM\Client\AmoCRMApiClient;
 
     class AuthController extends Controller
     {
-        private function getAmoClient(): AmoCRMApiClient
-        {
-            $clientId = config('services.amocrm.client_id');
-            $clientSecret = config('services.amocrm.client_secret');
-            $redirectUri = config('services.amocrm.redirect');
+        protected AmoCrmService $amo;
 
-            return new AmoCRMApiClient($clientId, $clientSecret, $redirectUri);
+        public function __construct(AmoCrmService $amo)
+        {
+            $this->amo = $amo;
         }
 
         public function redirect()
         {
-            $apiClient = $this->getAmoClient();
-
-            $authorizationUrl = $apiClient->getOAuthClient()->getAuthorizeUrl([
-                'redirect_uri' => config('services.amocrm.redirect'),
-            ]);
-
-            return redirect($authorizationUrl);
+            return redirect($this->amo->getAuthUrl());
         }
 
         public function callback(Request $request)
@@ -32,27 +24,17 @@
             $code = $request->get('code');
             $referer = $request->get('referer');
 
-            if (!$code) {
-                return response('Invalid state or code', 403);
+            if (!$code || !$referer) {
+                return response('Invalid code or referer', 403);
             }
 
-            $apiClient = $this->getAmoClient();
-            $apiClient->setAccountBaseDomain($referer);
-
             try {
-                $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($code);
-
-
-                session([
-                    'access_token' => $accessToken->getToken(),
-                    'refresh_token' => $accessToken->getRefreshToken(),
-                    'expires' => $accessToken->getExpires(),
-                    'base_domain' => $referer,
-                ]);
+                $accessToken = $this->amo->getAccessTokenByCode($code, $referer);
+                $this->amo->storeToken($accessToken, $referer);
 
                 return redirect('/leads');
             } catch (\Throwable $e) {
-                return response('Ошибка получения токена: ' . $e->getMessage(), 500);
+                return response('Ошибка авторизации: ' . $e->getMessage(), 500);
             }
         }
     }
