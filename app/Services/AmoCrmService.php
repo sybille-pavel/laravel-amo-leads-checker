@@ -64,10 +64,14 @@
             return $this->client->getOAuthClient()->getAccessTokenByCode($code);
         }
 
-        //TODO: лимит 250, нужно исправить
-        public function getLeads(int $page = 1, int $limit = 250)
+        public function getLeads(int $page = 1, int $limit = 25)
         {
-            return $this->client->leads()->get(null, ['page' => $page, 'limit' => $limit, 'with' => 'contacts']);
+            $filter = new \AmoCRM\Filters\LeadsFilter();
+            $filter->setPage($page);
+            $filter->setLimit($limit);
+
+            $leads = $this->client->leads()->get($filter, ['contacts']);
+            return $leads;
         }
 
         public function getContactsById($id)

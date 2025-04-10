@@ -31,7 +31,10 @@
             }
 
             try {
-                $leads = $this->amo->getLeads();
+                $page = (int) $request->get('page', 1);
+                $limit = (int) $request->get('limit', 25);
+
+                $leads = $this->amo->getLeads($page, $limit);
                 $statuses = $this->amo->getStatusesByPipeline();
 
                 $formattedLeads = collect($leads->all())->map(function ($lead) use ($statuses) {
@@ -41,7 +44,6 @@
                     $statusName = $statuses[$pipelineId][$statusId] ?? 'Неизвестный статус';
 
                     $contact = null;
-
                     if ($lead->getContacts()) {
                         $firstContact = $lead->getContacts()->first();
                         $contactInfo = $this->amo->getContactsById($firstContact->getId());
@@ -59,9 +61,16 @@
                     ];
                 });
 
-                return response()->json($formattedLeads);
+                return response()->json([
+                    'data' => $formattedLeads,
+                    'meta' => [
+                        'total' => 100
+                    ]
+                ]);
             } catch (\Throwable $e) {
                 return response()->json(['error' => $e->getMessage()], 500);
             }
         }
+
+
     }

@@ -2,30 +2,41 @@
     <EasyDataTable
         :headers="headers"
         :items="leads"
-        :sort-by="'updated_at'"
-        table-class="custom-table"
+        :server-options="serverOptions"
+        :server-items-length="total"
+        :loading="loading"
+        @update:server-options="onServerOptionsUpdate"
     />
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import EasyDataTable from 'vue3-easy-data-table'
 import 'vue3-easy-data-table/dist/style.css'
 
-defineProps({
-    leads: Array
+const props = defineProps({
+    leads: Array,
+    total: Number,
+    currentPage: Number,
+    itemsPerPage: Number,
+    loading: Boolean
 })
+const emit = defineEmits(['update:current-page'])
 
 const headers = [
-    { text: 'Название лида', value: 'name', sortable: true },
-    { text: 'Статус лида', value: 'status', sortable: true },
-    { text: 'Контактные данные', value: 'contact', sortable: true },
-    { text: 'Дата последнего изменения', value: 'updated_at', sortable: true }
+    {text: 'Название', value: 'name'},
+    {text: 'Статус', value: 'status'},
+    {text: 'Контакт', value: 'contact'},
+    {text: 'Обновлено', value: 'updated_at'}
 ]
 
-</script>
+// Собираем serverOptions из props
+const serverOptions = computed(() => ({
+    page: props.currentPage,
+    rowsPerPage: props.itemsPerPage,
+}))
 
-<style scoped>
-.custom-table {
-    --easy-table-border: 1px solid #ccc;
+function onServerOptionsUpdate(newOptions) {
+    emit('update:current-page', newOptions.page)
 }
-</style>
+</script>
