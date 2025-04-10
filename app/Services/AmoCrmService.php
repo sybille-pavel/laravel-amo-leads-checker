@@ -74,12 +74,12 @@
             return $leads;
         }
 
-        public function getContactsById($id)
+        public function getContactsById(array $id)
         {
             $filter = new \AmoCRM\Filters\ContactsFilter();
-            $filter->setIds([$id]);
+            $filter->setIds($id);
 
-            return $this->client->contacts()->get($filter)->first();
+            return $this->client->contacts()->get($filter);
         }
 
         public function getStatusesByPipeline(): array

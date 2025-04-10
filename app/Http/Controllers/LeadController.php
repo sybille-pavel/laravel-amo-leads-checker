@@ -24,6 +24,22 @@
 
         }
 
+        private function getContacts($leads)
+        {
+            $contacts_id = collect($leads->all())->map(function ($lead){
+                if ($lead->getContacts()) {
+                    $firstContact = $lead->getContacts()->first();
+                    return $firstContact->getId();
+                }
+                return null;
+            });
+
+            $contacts_id = array_values($contacts_id->filter()->toArray());
+
+            $contacts = $this->amo->getContactsById($contacts_id);
+            return collect($contacts->toArray());
+        }
+
         public function api(Request $request)
         {
             if (!$this->amo->hasToken()) {
@@ -37,7 +53,9 @@
                 $leads = $this->amo->getLeads($page, $limit);
                 $statuses = $this->amo->getStatusesByPipeline();
 
-                $formattedLeads = collect($leads->all())->map(function ($lead) use ($statuses) {
+                $contacts = $this->getContacts($leads);
+
+                $formattedLeads = collect($leads->all())->map(function ($lead) use ($statuses, $contacts) {
                     $pipelineId = $lead->getPipelineId();
                     $statusId = $lead->getStatusId();
 
@@ -46,8 +64,8 @@
                     $contact = null;
                     if ($lead->getContacts()) {
                         $firstContact = $lead->getContacts()->first();
-                        $contactInfo = $this->amo->getContactsById($firstContact->getId());
-                        $contact = $contactInfo ? $contactInfo->getName() : null;
+                        $contactInfo = $contacts->firstWhere('id', $firstContact->getId());
+                        $contact = $contactInfo ? $contactInfo['name'] : null;
                     }
 
                     return [
