@@ -62,10 +62,7 @@
                 });
 
                 return response()->json([
-                    'data' => $formattedLeads,
-                    'meta' => [
-                        'total' => 100
-                    ]
+                    'data' => $formattedLeads
                 ]);
             } catch (\Throwable $e) {
                 return response()->json(['error' => $e->getMessage()], 500);

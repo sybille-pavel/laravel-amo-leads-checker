@@ -6,11 +6,13 @@
         :server-items-length="total"
         :loading="loading"
         @update:server-options="onServerOptionsUpdate"
+        :rows-items="[25, 50, 100]"
+    rows-per-page-message="Строк на странице:"
     />
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import {computed} from 'vue'
 import EasyDataTable from 'vue3-easy-data-table'
 import 'vue3-easy-data-table/dist/style.css'
 
@@ -21,7 +23,7 @@ const props = defineProps({
     itemsPerPage: Number,
     loading: Boolean
 })
-const emit = defineEmits(['update:current-page'])
+const emit = defineEmits(['update:current-page', 'update:items-per-page'])
 
 const headers = [
     {text: 'Название', value: 'name'},
@@ -30,13 +32,22 @@ const headers = [
     {text: 'Обновлено', value: 'updated_at'}
 ]
 
-// Собираем serverOptions из props
 const serverOptions = computed(() => ({
     page: props.currentPage,
     rowsPerPage: props.itemsPerPage,
 }))
 
 function onServerOptionsUpdate(newOptions) {
-    emit('update:current-page', newOptions.page)
+    if (newOptions.rowsPerPage !== props.itemsPerPage) {
+        emit('update:items-per-page', newOptions.rowsPerPage)
+    } else {
+        emit('update:current-page', newOptions.page)
+    }
 }
 </script>
+
+<style>
+.pagination__items-index{
+    visibility: hidden;
+}
+</style>
