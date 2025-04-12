@@ -1,4 +1,4 @@
-# Leads MAnager API
+# Leads Manager API
 
 Простое веб-приложение на **Laravel 11** (API) и **Vue 3** (SPA) с авторизацией через AMO CRM.
 
@@ -40,7 +40,6 @@ php artisan serve
 
 ### 3. Настройка AMO CRM
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
