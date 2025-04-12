@@ -10,16 +10,8 @@
 
     class AmoCrmService
     {
-        protected AmoCRMApiClient $client;
-
-        public function __construct()
+        public function __construct(protected AmoCRMApiClient $client)
         {
-            $this->client = new AmoCRMApiClient(
-                config('services.amocrm.client_id'),
-                config('services.amocrm.client_secret'),
-                config('services.amocrm.redirect')
-            );
-
             if ($this->hasToken()) {
                 $this->client->setAccessToken(new AccessToken([
                     'access_token' => Session::get('access_token'),

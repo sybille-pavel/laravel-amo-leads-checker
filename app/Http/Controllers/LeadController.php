@@ -49,12 +49,7 @@
             }
 
             try {
-                $filterDto = new LeadFilterDto(
-                    page: (int) $request->get('page', 1),
-                    limit: (int) $request->get('limit', 25),
-                    sortBy: $request->get('sortBy', 'updated_at'),
-                    sortDirection: $request->get('sortDirection', 'desc'),
-                );
+                $filterDto = LeadFilterDto::fromRequest($request);
 
                 $leads = $this->leadService->getFormattedLeads($filterDto);
 
