@@ -1,4 +1,4 @@
-# Task Manager API
+# Leads MAnager API
 
 Простое веб-приложение на **Laravel 11** (API) и **Vue 3** (SPA) с авторизацией через AMO CRM.
 
