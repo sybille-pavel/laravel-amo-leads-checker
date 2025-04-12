@@ -12,9 +12,9 @@
 
         public function getFormattedLeads(LeadFilterDto $filterDto): Collection
         {
+            $statuses = $this->amo->getStatusesByPipeline();
             $leads = $this->amo->getLeads($filterDto);
             $contacts = $this->getContacts($leads);
-            $statuses = $this->amo->getStatusesByPipeline();
 
             return collect($leads->all())->map(function ($lead) use ($statuses, $contacts) {
                 $contactId = $lead->getContacts()?->first()?->getId();

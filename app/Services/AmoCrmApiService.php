@@ -16,6 +16,12 @@
             $filter->setPage($filterDto->page);
             $filter->setLimit($filterDto->limit);
 
+            if($filterDto->status && $filterDto->pipelines){
+                $filter->setStatuses([
+                    ['status_id' => $filterDto->status, 'pipeline_id' => $filterDto->pipelines],
+                ]);
+            }
+
             $sortable = ['updated_at', 'created_at'];
             if (in_array($filterDto->sortBy, $sortable)) {
                 $filter->setOrder($filterDto->sortBy, strtolower($filterDto->sortDirection) === 'asc' ? 'asc' : 'desc');

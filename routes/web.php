@@ -15,4 +15,8 @@ Route::get('/', function () {
 Route::get('/auth/redirect', [AuthController::class, 'redirect']);
 Route::get('/auth/callback', [AuthController::class, 'callback']);
 Route::get('/leads', [LeadController::class, 'index']);
-Route::get('/api/leads', [LeadController::class, 'api']);
+
+Route::prefix('/api')->group(function () {
+    Route::get('/statuses', [LeadController::class, 'statuses']);
+    Route::get('/leads', [LeadController::class, 'api']);
+});

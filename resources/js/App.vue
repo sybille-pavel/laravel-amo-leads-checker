@@ -11,6 +11,13 @@ const sortType = ref('desc')
 const loading = ref(false)
 const hasMore = ref(true)
 
+const selectedStatus = ref(0)
+const statuses = ref({
+    0: 'Все'
+})
+
+let pipelines = [];
+
 const fetchLeads = async () => {
     loading.value = true
     try {
@@ -19,6 +26,8 @@ const fetchLeads = async () => {
         url.searchParams.set('limit', limit.value)
         url.searchParams.set('sortBy', sortBy.value)
         url.searchParams.set('sortDirection', sortType.value)
+        url.searchParams.set('status', selectedStatus.value)
+        url.searchParams.set('pipelines', getPipelines(selectedStatus.value))
 
         const response = await fetch(url)
         const data = await response.json()
@@ -27,15 +36,42 @@ const fetchLeads = async () => {
         hasMore.value = data.data.length >= limit.value
         total.value = data.meta?.total ?? 1000000
     } catch (e) {
-        loading.value = false;
-        page.value--;
-        console.error('Ошибка загрузки:', e)
+        loading.value = false
+        leads.value = []
+        if(page.value > 0){
+            page.value = 0;
+        }
+        alert(e);
     } finally {
         loading.value = false
     }
 }
 
-watch([page, limit, sortBy, sortType], fetchLeads, {immediate: true})
+
+const fetchStatuses = async () => {
+    try {
+        const url = new URL('/api/statuses', window.location.origin);
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(data);
+
+        const newStatuses = { ...statuses.value };
+
+        for (const innerObj of Object.values(data.data)) {
+            for (const [id, name] of Object.entries(innerObj)) {
+                newStatuses[id] = name;
+            }
+        }
+
+        pipelines = data.data;
+        statuses.value = newStatuses;
+        console.log(statuses.value);
+    } catch (e) {
+        console.error('Ошибка получения статусов:', e);
+    }
+};
+
+watch([page, limit, sortBy, sortType, selectedStatus], fetchLeads, {immediate: true})
 
 function onPageChange(newPage) {
     page.value = newPage
@@ -54,12 +90,42 @@ function onSortTypeChange(newSortType) {
     console.log(newSortType)
     sortType.value = newSortType
 }
+
+function getPipelines(input){
+    for (let pipelineKey in pipelines) {
+        const pipeline = pipelines[pipelineKey];
+
+        if (pipeline[input]) {
+            return pipelineKey;
+        }
+    }
+
+    return null;  // Если не найдено
+}
+
+onMounted(() => {
+    fetchStatuses()
+})
+
 </script>
 
 <template>
-    <h1>{{page}}</h1>
-    <div class="p-6">
-        <h1 class="text-2xl font-bold mb-4">Лиды из AmoCRM</h1>
+    <div class="p-6 space-y-4">
+        <h1 class="text-2xl font-bold">Лиды из AmoCRM</h1>
+
+        <div class="flex items-center gap-4">
+            <label class="">Фильтр по статусу:</label>
+            <select v-model="selectedStatus" class="bg-gray-800 text-white px-3 py-1 rounded">
+                <option
+                    v-for="(name, id) in statuses"
+                    :key="id"
+                    :value="id"
+                >
+                    {{ name }}
+                </option>
+            </select>
+        </div>
+
         <DataTable
             :leads="leads"
             :total="hasMore ? total : leads.length + (page - 1) * limit"
@@ -75,3 +141,4 @@ function onSortTypeChange(newSortType) {
         />
     </div>
 </template>
+

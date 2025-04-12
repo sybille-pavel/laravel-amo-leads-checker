@@ -1,14 +1,17 @@
 <template>
-    <EasyDataTable
-        :headers="headers"
-        :items="leads"
-        :server-options="serverOptions"
-        :server-items-length="total"
-        :loading="loading"
-        @update:server-options="onServerOptionsUpdate"
-        :rows-items="[25, 50, 100]"
-    rows-per-page-message="Строк на странице:"
-    />
+    <div>
+        <EasyDataTable
+            :headers="headers"
+            :items="leads"
+            :server-options="serverOptions"
+            :server-items-length="total"
+            :loading="loading"
+            @update:server-options="onServerOptionsUpdate"
+            :rows-items="[25, 50, 100]"
+            rows-per-page-message="Строк на странице:"
+        />
+        <div v-if="loading" class="text-center mt-4 text-gray-400">Загрузка...</div>
+    </div>
 </template>
 
 <script setup>

@@ -3,6 +3,7 @@
     namespace App\Http\Controllers;
 
     use App\DTO\LeadFilterDto;
+    use App\Services\AmoCrmApiService;
     use App\Services\AmoCrmAuthService;
     use App\Services\LeadService;
     use Illuminate\Http\Request;
@@ -11,14 +12,15 @@
     {
         public function __construct(
             protected LeadService $leadService,
-            protected AmoCrmAuthService $amo
+            protected AmoCrmAuthService $amoAuth,
+            protected AmoCrmApiService $amoService
         )
         {
         }
 
         public function index(Request $request)
         {
-            if (!$this->amo->hasToken()) {
+            if (!$this->amoAuth->hasToken()) {
                 return redirect('/auth/redirect');
             }
 
@@ -27,7 +29,7 @@
 
         public function api(Request $request)
         {
-            if (!$this->amo->hasToken()) {
+            if (!$this->amoAuth->hasToken()) {
                 return response()->json(['error' => 'Unauthenticated'], 401);
             }
 
@@ -42,5 +44,16 @@
             }
         }
 
-
+        public function statuses()
+        {
+            if (!$this->amoAuth->hasToken()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            try {
+                $statuses = $this->amoService->getStatusesByPipeline();
+                return response()->json(['data' => $statuses]);
+            }catch(\Throwable $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        }
     }
