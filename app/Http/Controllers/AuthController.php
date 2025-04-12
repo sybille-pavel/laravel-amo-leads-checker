@@ -2,17 +2,13 @@
 
     namespace App\Http\Controllers;
 
-    use App\Services\AmoCrmService;
+    use App\Services\AmoCrmAuthService;
     use Illuminate\Http\Request;
 
     class AuthController extends Controller
     {
-        protected AmoCrmService $amo;
-
-        public function __construct(AmoCrmService $amo)
-        {
-            $this->amo = $amo;
-        }
+        public function __construct(protected AmoCrmAuthService $amo)
+        {}
 
         public function redirect()
         {

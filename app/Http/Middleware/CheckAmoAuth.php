@@ -2,7 +2,7 @@
 
     namespace App\Http\Middleware;
 
-    use App\Services\AmoCrmService;
+    use App\Services\AmoCrmAuthService;
     use Closure;
     use Illuminate\Support\Facades\Session;
 
@@ -11,7 +11,7 @@
     {
         public function handle($request, Closure $next)
         {
-            $amo = app(AmoCrmService::class);
+            $amo = app(AmoCrmAuthService::class);
 
             if ($amo->hasValidToken()) {
                 return redirect('/leads');

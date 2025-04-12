@@ -7,7 +7,7 @@
     class LeadService
     {
         public function __construct(
-            protected AmoCrmService $amo,
+            protected AmoCrmApiService $amo,
         ) {}
 
         public function getFormattedLeads(LeadFilterDto $filterDto): Collection
@@ -17,29 +17,10 @@
             $statuses = $this->amo->getStatusesByPipeline();
 
             return collect($leads->all())->map(function ($lead) use ($statuses, $contacts) {
-                $pipelineId = $lead->getPipelineId();
-                $statusId = $lead->getStatusId();
-                $statusName = $statuses[$pipelineId][$statusId] ?? 'Неизвестный статус';
+                $contactId = $lead->getContacts()?->first()?->getId();
+                $contactName = $contactId ? ($contacts->firstWhere('id', $contactId)['name'] ?? null) : null;
 
-                $contact = null;
-                if ($lead->getContacts()) {
-                    $firstContact = $lead->getContacts()->first();
-                    $contactInfo = $contacts->firstWhere('id', $firstContact->getId());
-                    $contact = $contactInfo ? $contactInfo['name'] : null;
-                }
-
-                return [
-                    'id' => $lead->getId(),
-                    'name' => $lead->getName(),
-                    'status' => $statusName,
-                    'contact' => $contact,
-                    'updated_at' => $lead->getUpdatedAt()
-                        ? \Carbon\Carbon::createFromTimestamp($lead->getUpdatedAt())->format('Y-m-d H:i:s')
-                        : null,
-                    'created_at' => $lead->getCreatedAt()
-                        ? \Carbon\Carbon::createFromTimestamp($lead->getCreatedAt())->format('Y-m-d H:i:s')
-                        : null,
-                ];
+                return \App\DTO\LeadDto::fromEntity($lead, $statuses, $contactName);
             });
         }
 

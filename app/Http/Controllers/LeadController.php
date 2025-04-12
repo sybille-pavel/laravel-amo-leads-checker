@@ -3,7 +3,7 @@
     namespace App\Http\Controllers;
 
     use App\DTO\LeadFilterDto;
-    use App\Services\AmoCrmService;
+    use App\Services\AmoCrmAuthService;
     use App\Services\LeadService;
     use Illuminate\Http\Request;
 
@@ -11,7 +11,7 @@
     {
         public function __construct(
             protected LeadService $leadService,
-            protected AmoCrmService $amo
+            protected AmoCrmAuthService $amo
         )
         {
         }
@@ -23,23 +23,6 @@
             }
 
             return view('leads.index', ['leads']);
-
-        }
-
-        private function getContacts($leads)
-        {
-            $contacts_id = collect($leads->all())->map(function ($lead){
-                if ($lead->getContacts()) {
-                    $firstContact = $lead->getContacts()->first();
-                    return $firstContact->getId();
-                }
-                return null;
-            });
-
-            $contacts_id = array_values($contacts_id->filter()->toArray());
-
-            $contacts = $this->amo->getContactsById($contacts_id);
-            return collect($contacts->toArray());
         }
 
         public function api(Request $request)
