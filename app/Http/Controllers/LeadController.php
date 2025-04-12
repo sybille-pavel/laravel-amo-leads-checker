@@ -2,16 +2,18 @@
 
     namespace App\Http\Controllers;
 
+    use App\DTO\LeadFilterDto;
     use App\Services\AmoCrmService;
+    use App\Services\LeadService;
     use Illuminate\Http\Request;
 
     class LeadController extends Controller
     {
-        protected AmoCrmService $amo;
-
-        public function __construct(AmoCrmService $amo)
+        public function __construct(
+            protected LeadService $leadService,
+            protected AmoCrmService $amo
+        )
         {
-            $this->amo = $amo;
         }
 
         public function index(Request $request)
@@ -47,46 +49,16 @@
             }
 
             try {
-                $page = (int) $request->get('page', 1);
-                $limit = (int) $request->get('limit', 25);
-                $sortBy = $request->get('sortBy', 'updated_at');
-                $sortDirection = $request->get('sortDirection', 'desc');
+                $filterDto = new LeadFilterDto(
+                    page: (int) $request->get('page', 1),
+                    limit: (int) $request->get('limit', 25),
+                    sortBy: $request->get('sortBy', 'updated_at'),
+                    sortDirection: $request->get('sortDirection', 'desc'),
+                );
 
-                $leads = $this->amo->getLeads($page, $limit, $sortBy, $sortDirection);
-                $statuses = $this->amo->getStatusesByPipeline();
+                $leads = $this->leadService->getFormattedLeads($filterDto);
 
-                $contacts = $this->getContacts($leads);
-
-                $formattedLeads = collect($leads->all())->map(function ($lead) use ($statuses, $contacts) {
-                    $pipelineId = $lead->getPipelineId();
-                    $statusId = $lead->getStatusId();
-
-                    $statusName = $statuses[$pipelineId][$statusId] ?? 'Неизвестный статус';
-
-                    $contact = null;
-                    if ($lead->getContacts()) {
-                        $firstContact = $lead->getContacts()->first();
-                        $contactInfo = $contacts->firstWhere('id', $firstContact->getId());
-                        $contact = $contactInfo ? $contactInfo['name'] : null;
-                    }
-
-                    return [
-                        'id' => $lead->getId(),
-                        'name' => $lead->getName(),
-                        'status' => $statusName,
-                        'contact' => $contact,
-                        'updated_at' => $lead->getUpdatedAt()
-                            ? \Carbon\Carbon::createFromTimestamp($lead->getUpdatedAt())->format('Y-m-d H:i:s')
-                            : null,
-                        'created_at' => $lead->getCreatedAt()
-                            ? \Carbon\Carbon::createFromTimestamp($lead->getCreatedAt())->format('Y-m-d H:i:s')
-                            : null,
-                    ];
-                });
-
-                return response()->json([
-                    'data' => $formattedLeads
-                ]);
+                return response()->json(['data' => $leads]);
             } catch (\Throwable $e) {
                 return response()->json(['error' => $e->getMessage()], 500);
             }

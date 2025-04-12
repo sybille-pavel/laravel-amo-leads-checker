@@ -3,6 +3,7 @@
     namespace App\Services;
 
     use AmoCRM\Client\AmoCRMApiClient;
+    use App\DTO\LeadFilterDto;
     use Illuminate\Support\Facades\Session;
     use League\OAuth2\Client\Token\AccessTokenInterface;
     use League\OAuth2\Client\Token\AccessToken;
@@ -64,24 +65,25 @@
             return $this->client->getOAuthClient()->getAccessTokenByCode($code);
         }
 
-        public function getLeads(int $page = 1, int $limit = 25, string $sortBy = 'updated_at', string $sortDirection = 'desc')
+        public function getLeads(LeadFilterDto $filterDto)
         {
             $filter = new \AmoCRM\Filters\LeadsFilter();
-            $filter->setPage($page);
-            $filter->setLimit($limit);
+            $filter->setPage($filterDto->page);
+            $filter->setLimit($filterDto->limit);
 
             $apiSortableFields = ['updated_at', 'created_at'];
 
-            if (in_array($sortBy, $apiSortableFields)) {
-                $orderDirection = strtolower($sortDirection) === 'asc'
+            if (in_array($filterDto->sortBy, $apiSortableFields)) {
+                $orderDirection = strtolower($filterDto->sortDirection) === 'asc'
                     ? \AmoCRM\Filters\LeadsFilter::SORT_ASC
                     : \AmoCRM\Filters\LeadsFilter::SORT_DESC;
 
-                $filter->setOrder($sortBy, $orderDirection);
+                $filter->setOrder($filterDto->sortBy, $orderDirection);
             }
 
             return $this->client->leads()->get($filter, ['contacts']);
         }
+
 
         public function getContactsById(array $id)
         {

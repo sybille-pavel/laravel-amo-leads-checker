@@ -16,6 +16,3 @@ Route::get('/auth/redirect', [AuthController::class, 'redirect']);
 Route::get('/auth/callback', [AuthController::class, 'callback']);
 Route::get('/leads', [LeadController::class, 'index']);
 Route::get('/api/leads', [LeadController::class, 'api']);
-
-
-Route::get('test', [LeadController::class, 'api']);
