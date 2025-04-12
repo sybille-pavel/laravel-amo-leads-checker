@@ -27,6 +27,8 @@ const fetchLeads = async () => {
         hasMore.value = data.data.length >= limit.value
         total.value = data.meta?.total ?? 1000000
     } catch (e) {
+        loading.value = false;
+        page.value--;
         console.error('Ошибка загрузки:', e)
     } finally {
         loading.value = false
