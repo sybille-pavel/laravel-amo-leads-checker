@@ -21,26 +21,42 @@ const props = defineProps({
     total: Number,
     currentPage: Number,
     itemsPerPage: Number,
-    loading: Boolean
+    loading: Boolean,
+    sortBy: String,
+    sortType: String
 })
-const emit = defineEmits(['update:current-page', 'update:items-per-page'])
+
+const emit = defineEmits([
+    'update:current-page',
+    'update:items-per-page',
+    'update:sort-by',
+    'update:sort-type'
+])
 
 const headers = [
     {text: 'Название', value: 'name'},
     {text: 'Статус', value: 'status'},
     {text: 'Контакт', value: 'contact'},
-    {text: 'Обновлено', value: 'updated_at'}
+    {text: 'Обновлено', value: 'updated_at', sortable: true},
+    {text: 'Создано', value: 'created_at', sortable: true}
 ]
 
 const serverOptions = computed(() => ({
     page: props.currentPage,
     rowsPerPage: props.itemsPerPage,
+    sortBy: props.sortBy,
+    sortType: props.sortType
 }))
 
 function onServerOptionsUpdate(newOptions) {
-    if (newOptions.rowsPerPage !== props.itemsPerPage) {
+    if (newOptions.sortBy !== props.sortBy ||
+        newOptions.sortType !== props.sortType) {
+        console.log(newOptions)
+        emit('update:sort-by', newOptions.sortBy)
+        emit('update:sort-type', newOptions.sortType)
+    } else if (newOptions.rowsPerPage !== props.itemsPerPage) {
         emit('update:items-per-page', newOptions.rowsPerPage)
-    } else {
+    } else if (newOptions.page !== props.currentPage) {
         emit('update:current-page', newOptions.page)
     }
 }

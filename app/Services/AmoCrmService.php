@@ -64,14 +64,23 @@
             return $this->client->getOAuthClient()->getAccessTokenByCode($code);
         }
 
-        public function getLeads(int $page = 1, int $limit = 25)
+        public function getLeads(int $page = 1, int $limit = 25, string $sortBy = 'updated_at', string $sortDirection = 'desc')
         {
             $filter = new \AmoCRM\Filters\LeadsFilter();
             $filter->setPage($page);
             $filter->setLimit($limit);
 
-            $leads = $this->client->leads()->get($filter, ['contacts']);
-            return $leads;
+            $apiSortableFields = ['updated_at', 'created_at'];
+
+            if (in_array($sortBy, $apiSortableFields)) {
+                $orderDirection = strtolower($sortDirection) === 'asc'
+                    ? \AmoCRM\Filters\LeadsFilter::SORT_ASC
+                    : \AmoCRM\Filters\LeadsFilter::SORT_DESC;
+
+                $filter->setOrder($sortBy, $orderDirection);
+            }
+
+            return $this->client->leads()->get($filter, ['contacts']);
         }
 
         public function getContactsById(array $id)

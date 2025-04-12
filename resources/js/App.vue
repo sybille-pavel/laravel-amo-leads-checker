@@ -1,36 +1,31 @@
 <script setup>
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, watch} from 'vue'
 import DataTable from './components/DataTable.vue'
 
 const leads = ref([])
 const total = ref(0)
 const page = ref(1)
-const limit = ref(25) // Теперь это реактивная переменная
+const limit = ref(25)
+const sortBy = ref('updated_at')
+const sortType = ref('desc')
 const loading = ref(false)
-const hasMore = ref(true) // Флаг для проверки наличия дополнительных данных
+const hasMore = ref(true)
 
 const fetchLeads = async () => {
     loading.value = true
     try {
-        const response = await fetch(`/api/leads?page=${page.value}&limit=${limit.value}`)
+        const url = new URL('/api/leads', window.location.origin)
+        url.searchParams.set('page', page.value)
+        url.searchParams.set('limit', limit.value)
+        url.searchParams.set('sortBy', sortBy.value)
+        url.searchParams.set('sortDirection', sortType.value)
+
+        const response = await fetch(url)
         const data = await response.json()
 
-        if (data.data.length === 0) {
-            hasMore.value = false
-            // Если это не первая страница, просто останавливаем загрузку
-            if (page.value > 1) {
-                page.value-- // Возвращаемся на предыдущую страницу
-                return
-            }
-        } else {
-            leads.value = data.data
-            // Если данных меньше, чем запрошено, значит это последняя страница
-            hasMore.value = data.data.length >= limit.value
-        }
-
-        // Если сервер не возвращает общее количество, можно установить большое число
-        // или использовать специальное значение для бесконечной пагинации
-        total.value = data.meta?.total ?? 1000000 // Большое число для имитации бесконечного списка
+        leads.value = data.data
+        hasMore.value = data.data.length >= limit.value
+        total.value = data.meta?.total ?? 1000000
     } catch (e) {
         console.error('Ошибка загрузки:', e)
     } finally {
@@ -38,33 +33,43 @@ const fetchLeads = async () => {
     }
 }
 
-onMounted(fetchLeads)
+watch([page, limit, sortBy, sortType], fetchLeads, {immediate: true})
 
 function onPageChange(newPage) {
-    console.log('Смена страницы на:', newPage)
     page.value = newPage
-    fetchLeads()
 }
 
 function onItemsPerPageChange(newLimit) {
-    console.log('Изменение количества строк на странице:', newLimit)
     limit.value = newLimit
-    page.value = 1 // Сбрасываем на первую страницу при изменении limit
-    fetchLeads()
+}
+
+function onSortByChange(newSortBy) {
+    console.log(newSortBy);
+    sortBy.value = newSortBy
+}
+
+function onSortTypeChange(newSortType) {
+    console.log(newSortType)
+    sortType.value = newSortType
 }
 </script>
 
 <template>
+    <h1>{{page}}</h1>
     <div class="p-6">
         <h1 class="text-2xl font-bold mb-4">Лиды из AmoCRM</h1>
         <DataTable
             :leads="leads"
-            :total="hasMore ? total : leads.length + (page-1) * limit"
+            :total="hasMore ? total : leads.length + (page - 1) * limit"
             :current-page="page"
             :items-per-page="limit"
+            :sort-by="sortBy"
+            :sort-type="sortType"
             :loading="loading"
             @update:current-page="onPageChange"
             @update:items-per-page="onItemsPerPageChange"
+            @update:sort-by="onSortByChange"
+            @update:sort-type="onSortTypeChange"
         />
     </div>
 </template>

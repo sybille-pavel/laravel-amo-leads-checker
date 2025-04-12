@@ -49,8 +49,10 @@
             try {
                 $page = (int) $request->get('page', 1);
                 $limit = (int) $request->get('limit', 25);
+                $sortBy = $request->get('sortBy', 'updated_at');
+                $sortDirection = $request->get('sortDirection', 'desc');
 
-                $leads = $this->amo->getLeads($page, $limit);
+                $leads = $this->amo->getLeads($page, $limit, $sortBy, $sortDirection);
                 $statuses = $this->amo->getStatusesByPipeline();
 
                 $contacts = $this->getContacts($leads);
@@ -75,6 +77,9 @@
                         'contact' => $contact,
                         'updated_at' => $lead->getUpdatedAt()
                             ? \Carbon\Carbon::createFromTimestamp($lead->getUpdatedAt())->format('Y-m-d H:i:s')
+                            : null,
+                        'created_at' => $lead->getCreatedAt()
+                            ? \Carbon\Carbon::createFromTimestamp($lead->getCreatedAt())->format('Y-m-d H:i:s')
                             : null,
                     ];
                 });
